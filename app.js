@@ -60,50 +60,55 @@ function normalizeJsonFileList(value){
   throw new Error("index.json は JSON ファイル名の配列、または {files:[...]} である必要があります。");
 }
 
-async function discoverJsonFiles(directory){
-  // ------------------------------------------------------------
-  // 1) If directory/index.json exists, use it.
-  //
-  // Example:
-  // [
-  //   "HODACA.json",
-  //   "CTAX.json"
-  // ]
-  //
-  // This is the most portable method and also works on static
-  // hosting services that do not expose directory listings.
-  // ------------------------------------------------------------
-  try{
-    const manifestResponse = await fetch(
-      `${directory}/index.json`,
-      {cache: "no-store"}
-    );
+const GITHUB_REPO_OWNER = "Hodaka-Kikuchi";
+const GITHUB_REPO_NAME = "TAS_QErange_Calc";
+const GITHUB_REPO_BRANCH = "main";
 
-    if(manifestResponse.ok){
-      const manifest = await manifestResponse.json();
+function isGitHubPages(){
+  return window.location.hostname.endsWith("github.io");
+}
 
-      return normalizeJsonFileList(manifest)
-        .filter(name => /\.json$/i.test(name))
-        .filter(name => name.toLowerCase() !== "index.json");
+async function discoverJsonFilesFromGitHub(directory){
+  const apiUrl =
+    `https://api.github.com/repos/${GITHUB_REPO_OWNER}/` +
+    `${GITHUB_REPO_NAME}/contents/${directory}` +
+    `?ref=${encodeURIComponent(GITHUB_REPO_BRANCH)}`;
+
+  const response = await fetch(apiUrl, {
+    cache: "no-store",
+    headers: {
+      "Accept": "application/vnd.github+json"
     }
-  }catch(_err){
-    // Fall through to directory-listing discovery.
+  });
+
+  if(!response.ok){
+    throw new Error(
+      `GitHub API から ${directory}/ の一覧を取得できませんでした ` +
+      `(HTTP ${response.status})。`
+    );
   }
 
-  // ------------------------------------------------------------
-  // 2) Fallback for local servers such as:
-  //
-  //     python -m http.server 8000
-  //
-  // Python's SimpleHTTPRequestHandler returns an HTML directory
-  // listing. Parse the links and collect *.json files.
-  // ------------------------------------------------------------
+  const items = await response.json();
+
+  if(!Array.isArray(items)){
+    throw new Error(`${directory}/ の GitHub API 応答が不正です。`);
+  }
+
+  return items
+    .filter(item => item && item.type === "file")
+    .map(item => item.name)
+    .filter(name => /\.json$/i.test(name))
+    .filter(name => name.toLowerCase() !== "index.json")
+    .sort((a,b)=>a.localeCompare(b));
+}
+
+async function discoverJsonFilesFromDirectoryListing(directory){
   const response = await fetch(`${directory}/`, {cache: "no-store"});
 
   if(!response.ok){
     throw new Error(
       `${directory}/ を読み込めませんでした。` +
-      ` ディレクトリが Newcode 内にあるか確認してください。`
+      ` ディレクトリがプロジェクト内にあるか確認してください。`
     );
   }
 
@@ -115,12 +120,8 @@ async function discoverJsonFiles(directory){
     .filter(Boolean)
     .map(href => {
       try{
-        return decodeURIComponent(
-          new URL(href, `${window.location.origin}${window.location.pathname}`)
-            .pathname
-            .split("/")
-            .pop()
-        );
+        const url = new URL(href, window.location.href);
+        return decodeURIComponent(url.pathname.split("/").filter(Boolean).pop() || "");
       }catch(_err){
         return null;
       }
@@ -129,17 +130,58 @@ async function discoverJsonFiles(directory){
     .filter(name => /\.json$/i.test(name))
     .filter(name => name.toLowerCase() !== "index.json");
 
-  const unique = [...new Set(files)].sort((a,b)=>a.localeCompare(b));
+  return [...new Set(files)].sort((a,b)=>a.localeCompare(b));
+}
 
-  if(unique.length===0){
+async function discoverJsonFiles(directory){
+  // 1) If an index.json exists, use it. This remains supported for
+  //    compatibility with other static hosting services.
+  try{
+    const manifestResponse = await fetch(
+      `${directory}/index.json`,
+      {cache: "no-store"}
+    );
+
+    if(manifestResponse.ok){
+      const manifest = await manifestResponse.json();
+
+      const files = normalizeJsonFileList(manifest)
+        .filter(name => /\.json$/i.test(name))
+        .filter(name => name.toLowerCase() !== "index.json");
+
+      if(files.length > 0){
+        return files.sort((a,b)=>a.localeCompare(b));
+      }
+    }
+  }catch(_err){
+    // Continue to automatic discovery.
+  }
+
+  // 2) On GitHub Pages, GitHub does not expose an HTML directory listing.
+  //    Query the public GitHub Contents API instead. This means that adding
+  //    a new JSON file to the repository is enough; index.json does not need
+  //    to be maintained manually.
+  if(isGitHubPages()){
+    const files = await discoverJsonFilesFromGitHub(directory);
+
+    if(files.length === 0){
+      throw new Error(`${directory}/ に JSON ファイルがありません。`);
+    }
+
+    return files;
+  }
+
+  // 3) Local development with e.g. "python -m http.server 8888".
+  //    Python exposes a directory listing, so parse that automatically.
+  const files = await discoverJsonFilesFromDirectoryListing(directory);
+
+  if(files.length === 0){
     throw new Error(
-      `${directory}/ に JSON ファイルを見つけられませんでした。` +
-      ` サーバーがディレクトリ一覧を公開しない場合は ` +
-      `${directory}/index.json を追加してください。`
+      `${directory}/ に JSON ファイルを見つけられませんでした。`
     );
   }
 
-  return unique;
+  return files;
 }
 
 async function loadJsonDirectory(directory, targetMap){
