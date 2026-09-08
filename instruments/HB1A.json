@@ -1,0 +1,22 @@
+{
+    "name": "VERITAS(HB1A)@HFIR",
+
+    "energy_mode": "Ei fixed",
+
+    "sense": "+-+",
+
+    "default_energy": 14.5,
+
+    "S2_min": 0.0,
+
+    "configuration": [
+        {
+            "S2limit": 130,
+            "Ei": 14.5
+        },
+        {
+            "S2limit": 130,
+            "Ei": 0.1
+        }
+    ]
+}

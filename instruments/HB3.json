@@ -1,0 +1,22 @@
+{
+    "name": "TAX(HB3)@HFIR",
+
+    "energy_mode": "Ef fixed",
+
+    "sense": "-+-",
+
+    "default_energy": 14.7,
+
+    "S2_min": 0.0,
+
+    "configuration": [
+        {
+            "S2limit": 128,
+            "Ei": 38.5
+        },
+        {
+            "S2limit": 128,
+            "Ei": 14.7
+        }
+    ]
+}

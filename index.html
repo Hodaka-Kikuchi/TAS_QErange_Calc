@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TAS Q-E Range Simulator</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>TAS Q-E Range Simulator</h1>
+    <div id="status" class="status">設定ファイルを読み込み中...</div>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <section>
+        <h2>Configuration</h2>
+
+        <label>Instrument
+          <select id="instrumentSelect">
+            <option value="">Loading...</option>
+          </select>
+        </label>
+
+        <label>Background scattering
+          <select id="sampleSelect">
+            <option value="">None</option>
+          </select>
+        </label>
+
+        <label>Sample environment
+          <select id="seSelect">
+            <option value="">None</option>
+          </select>
+        </label>
+      </section>
+
+      <section>
+        <h2>Type</h2>
+        <div class="inline">
+          <label><input type="radio" name="sampleMode" value="single" checked /> Single crystal</label>
+          <label><input type="radio" name="sampleMode" value="powder" /> Powder</label>
+        </div>
+      </section>
+
+      <section>
+        <h2>Lattice constant</h2>
+        <div class="grid3">
+          <label>a (Å)<input id="a" type="number" step="0.01" value="5.00" /></label>
+          <label>b (Å)<input id="b" type="number" step="0.01" value="5.00" /></label>
+          <label>c (Å)<input id="c" type="number" step="0.01" value="5.00" /></label>
+          <label>α (deg)<input id="alpha" type="number" step="1" value="90" /></label>
+          <label>β (deg)<input id="beta" type="number" step="1" value="90" /></label>
+          <label>γ (deg)<input id="gamma" type="number" step="1" value="90" /></label>
+        </div>
+      </section>
+
+      <section id="singleCrystalInputs">
+        <h2>Scattering plane</h2>
+        <div class="vector-row">
+          <span>U</span>
+          <input id="Uh" type="number" step="1" value="1" />
+          <input id="Uk" type="number" step="1" value="0" />
+          <input id="Ul" type="number" step="1" value="0" />
+        </div>
+        <div class="vector-row">
+          <span>V</span>
+          <input id="Vh" type="number" step="1" value="0" />
+          <input id="Vk" type="number" step="1" value="1" />
+          <input id="Vl" type="number" step="1" value="0" />
+        </div>
+      </section>
+
+      <section>
+        <h2>Propagation vector</h2>
+        <div class="inline">
+          <label><input id="showK" type="checkbox" /> show</label>
+        </div>
+        <div class="grid3">
+          <label>h<input id="kh" type="number" step="0.01" value="0" /></label>
+          <label>k<input id="kk" type="number" step="0.01" value="0" /></label>
+          <label>l<input id="kl" type="number" step="0.01" value="0" /></label>
+        </div>
+      </section>
+
+      <section>
+        <h2>Instrument</h2>
+        <div id="senseRow" class="inline">
+          <label><input type="radio" name="sense" value="+-+" /> +-+</label>
+          <label><input type="radio" name="sense" value="-+-" checked /> -+-</label>
+        </div>
+        <div class="inline">
+          <label><input type="radio" name="energyMode" value="Ef fixed" checked /> Ef fixed</label>
+          <label><input type="radio" name="energyMode" value="Ei fixed" /> Ei fixed</label>
+        </div>
+        <div class="grid2">
+          <label id="energyLabel">Ef (meV)<input id="energyInput" type="number" step="0.1" value="4.8" /></label>
+          <label class="checkbox-label"><input id="lambdaHalf" type="checkbox" /> λ/2</label>
+        </div>
+        <div class="grid3">
+          <label id="s2Label">S2 min (deg)<input id="S2min" type="number" step="0.1" value="8" /></label>
+          <label id="s1minWrap">S1 min (deg)<input id="S1min" type="number" step="0.1" value="-180" /></label>
+          <label id="s1maxWrap">S1 max (deg)<input id="S1max" type="number" step="0.1" value="180" /></label>
+        </div>
+      </section>
+
+      <section id="referenceSection">
+        <h2>Reference Q</h2>
+        <div class="grid4">
+          <label>h<input id="refh" type="number" step="0.1" value="1" /></label>
+          <label>k<input id="refk" type="number" step="0.1" value="0" /></label>
+          <label>l<input id="refl" type="number" step="0.1" value="0" /></label>
+          <label>s1 (deg)<input id="refs1" type="number" step="0.1" value="0" /></label>
+        </div>
+</section>
+
+      <section id="darkSection">
+        <h2>Dark angle</h2>
+        <div class="inline">
+          <label><input type="radio" name="darkRef" value="Reference Q" checked /> Reference Q</label>
+          <label><input type="radio" name="darkRef" value="Direct beam" /> Direct beam</label>
+        </div>
+        <label>Rotation (deg)<input id="darkRotation" type="number" step="1" value="0" /></label>
+        <div class="dark-table">
+          <div>No.</div><div>From</div><div>To</div><div>Offset</div>
+          <span>1</span><input id="darkFrom0" type="number" step="1" value="0"/><input id="darkTo0" type="number" step="1" value="0"/><input id="darkOffset0" type="number" step="1" value="0"/>
+          <span>2</span><input id="darkFrom1" type="number" step="1" value="0"/><input id="darkTo1" type="number" step="1" value="0"/><input id="darkOffset1" type="number" step="1" value="0"/>
+          <span>3</span><input id="darkFrom2" type="number" step="1" value="0"/><input id="darkTo2" type="number" step="1" value="0"/><input id="darkOffset2" type="number" step="1" value="0"/>
+          <span>4</span><input id="darkFrom3" type="number" step="1" value="0"/><input id="darkTo3" type="number" step="1" value="0"/><input id="darkOffset3" type="number" step="1" value="0"/>
+        </div>
+        <label class="checkbox-label"><input id="addDark" type="checkbox" /> Add dark angle</label>
+      </section>
+    </aside>
+
+    <main>
+      <div id="errorBox" class="error hidden"></div>
+      <div id="singleMain">
+        <div class="chart-grid">
+          <div>
+            <div id="singlePlot" class="plot"></div>
+            <div class="energy-slider-row">
+              <label>ħω
+                <input id="hwSlider" type="range" min="0" max="0" step="1" value="0" />
+              </label>
+              <output id="hwValue">0.0 meV</output>
+            </div>
+          </div>
+          <div id="geometryPlot" class="plot geometry"></div>
+        </div>
+      </div>
+      <div id="powderMain" class="hidden">
+        <div id="powderPlot" class="plot powder"></div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

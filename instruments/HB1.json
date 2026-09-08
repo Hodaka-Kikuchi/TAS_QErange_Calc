@@ -1,0 +1,22 @@
+{
+    "name": "PTAX(HB1)@HFIR",
+
+    "energy_mode": "Ef fixed",
+
+    "sense": "+-+",
+
+    "default_energy": 13.5,
+
+    "S2_min": 0.0,
+
+    "configuration": [
+        {
+            "S2limit": 100,
+            "Ei": 38.5
+        },
+        {
+            "S2limit": 100,
+            "Ei": 13.5
+        }
+    ]
+}
