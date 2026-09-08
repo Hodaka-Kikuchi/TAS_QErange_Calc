@@ -438,14 +438,36 @@ function calculateSingleCrystal(){
     for(let n=-Nmax;n<=Nmax;n++){
       const hkl=add(scale(U,m),scale(V,n));
       const G=hklToQ(rl,hkl);
+
       if(norm(G)>QplotLattice) continue;
-      Gpoints.push({x:dot(G,ex),y:dot(G,ey),label:`(${formatHKL(hkl)})`});
+
+      const h = Math.round(hkl[0]);
+      const k = Math.round(hkl[1]);
+      const l = Math.round(hkl[2]);
+
+      const indexSum = h + k + l;
+
+      const showLabel =
+        !(h === 0 && k === 0 && l === 0) &&
+        Math.abs(indexSum) % 2 === 1;
+
+      Gpoints.push({
+        x:dot(G,ex),
+        y:dot(G,ey),
+        label:showLabel ? `(${formatHKL(hkl)})` : ""
+      });
+
       if($("showK").checked){
         for(const s of [1,-1]){
           const hm=add(hkl,scale(kvec,s));
           const Gm=hklToQ(rl,hm);
+
           if(norm(Gm)<=QplotLattice){
-            magPoints.push({x:dot(Gm,ex),y:dot(Gm,ey),label:`(${hm.map(x=>x.toFixed(2)).join(",")})`});
+            magPoints.push({
+              x:dot(Gm,ex),
+              y:dot(Gm,ey),
+              label:`(${hm.map(x=>x.toFixed(2)).join(",")})`
+            });
           }
         }
       }
@@ -483,6 +505,11 @@ function calculateSingleCrystal(){
 function renderSingle(cache,index=0){
   const i=Math.max(0,Math.min(index,cache.regions.length-1));
   const boundary=cache.regions[i];
+  const qMax = Math.max(
+    ...cache.Gpoints.map(p => Math.hypot(p.x, p.y))
+  );
+
+  const labelOffset = 0.03 * qMax;
   const traces=[
     {
       x:boundary.map(p=>p[0]), y:boundary.map(p=>p[1]),
@@ -490,10 +517,33 @@ function renderSingle(cache,index=0){
       line:{width:0}, fillcolor:"rgba(255,0,0,0.15)"
     },
     {
-      x:cache.Gpoints.map(p=>p.x), y:cache.Gpoints.map(p=>p.y),
-      mode:"markers+text", text:cache.Gpoints.map(p=>p.label),
-      textposition:"top center", name:"Nuclear Bragg peaks",
-      marker:{color:"black",size:6}, textfont:{color:"black",size:12}
+      x:cache.Gpoints.map(p=>p.x),
+      y:cache.Gpoints.map(p=>p.y),
+      mode:"markers",
+      name:"Nuclear Bragg peaks",
+      marker:{color:"black",size:6},
+      hovertext:cache.Gpoints.map(p=>p.label),
+      hovertemplate:"%{hovertext}<extra></extra>"
+    },
+    {
+      x:cache.Gpoints
+        .filter(p=>p.label !== "")
+        .map(p=>p.x),
+
+      y:cache.Gpoints
+        .filter(p=>p.label !== "")
+        .map(p=>p.y + labelOffset),
+
+      mode:"text",
+
+      text:cache.Gpoints
+        .filter(p=>p.label !== "")
+        .map(p=>p.label),
+
+      textposition:"middle center",
+      textfont:{color:"black",size:12},
+      showlegend:false,
+      hoverinfo:"skip"
     },
     {
       x:cache.magPoints.map(p=>p.x), y:cache.magPoints.map(p=>p.y),
