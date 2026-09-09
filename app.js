@@ -242,7 +242,7 @@ function refreshSelect(map,select,emptyLabel){
     select.appendChild(op);
   }
   [...map.entries()]
-    .sort((a,b)=>(a[1].name||a[0]).localeCompare(b[1].name||b[0]))
+    .sort((a,b)=>a[0].localeCompare(b[0]))
     .forEach(([key,obj])=>{
       const op=document.createElement("option");
       op.value=key;

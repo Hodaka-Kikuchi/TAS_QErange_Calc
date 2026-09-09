@@ -16,16 +16,6 @@
   <div class="app-shell">
     <aside class="sidebar">
       <section>
-        <h2>Configuration</h2>
-
-        <label>Instrument
-          <select id="instrumentSelect">
-            <option value="">Loading...</option>
-          </select>
-        </label>
-      </section>
-
-      <section>
         <h2>Sample</h2>
         <div class="inline">
           <label><input type="radio" name="sampleMode" value="single" checked /> Single crystal</label>
@@ -91,7 +81,14 @@
       </section>
 
       <section>
-        <h2>Instrument setup</h2>
+        <h2>Instrument</h2>
+
+        <label>Instrument
+          <select id="instrumentSelect">
+            <option value="">Loading...</option>
+          </select>
+        </label>
+
         <div id="senseRow" class="inline">
           <label><input type="radio" name="sense" value="+-+" /> +-+</label>
           <label><input type="radio" name="sense" value="-+-" checked /> -+-</label>
