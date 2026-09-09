@@ -16,6 +16,34 @@
   <div class="app-shell">
     <aside class="sidebar">
       <section>
+        <h2>Instrument</h2>
+
+        <label>Instrument
+          <select id="instrumentSelect">
+            <option value="">Loading...</option>
+          </select>
+        </label>
+
+        <div id="senseRow" class="inline">
+          <label><input type="radio" name="sense" value="+-+" /> +-+</label>
+          <label><input type="radio" name="sense" value="-+-" checked /> -+-</label>
+        </div>
+        <div class="inline">
+          <label><input type="radio" name="energyMode" value="Ef fixed" checked /> Ef fixed</label>
+          <label><input type="radio" name="energyMode" value="Ei fixed" /> Ei fixed</label>
+        </div>
+        <div class="grid2">
+          <label id="energyLabel">Ef (meV)<input id="energyInput" type="number" step="0.1" value="4.8" /></label>
+          <label class="checkbox-label"><input id="lambdaHalf" type="checkbox" /> λ/2</label>
+        </div>
+        <div class="grid3">
+          <label id="s2Label">S2 min (deg)<input id="S2min" type="number" step="0.1" value="8" /></label>
+          <label id="s1minWrap">S1 min (deg)<input id="S1min" type="number" step="0.1" value="-180" /></label>
+          <label id="s1maxWrap">S1 max (deg)<input id="S1max" type="number" step="0.1" value="180" /></label>
+        </div>
+      </section>
+      
+      <section>
         <h2>Sample</h2>
         <div class="inline">
           <label><input type="radio" name="sampleMode" value="single" checked /> Single crystal</label>
@@ -77,34 +105,6 @@
           <label>h<input id="kh" type="number" step="0.01" value="0" /></label>
           <label>k<input id="kk" type="number" step="0.01" value="0" /></label>
           <label>l<input id="kl" type="number" step="0.01" value="0" /></label>
-        </div>
-      </section>
-
-      <section>
-        <h2>Instrument</h2>
-
-        <label>Instrument
-          <select id="instrumentSelect">
-            <option value="">Loading...</option>
-          </select>
-        </label>
-
-        <div id="senseRow" class="inline">
-          <label><input type="radio" name="sense" value="+-+" /> +-+</label>
-          <label><input type="radio" name="sense" value="-+-" checked /> -+-</label>
-        </div>
-        <div class="inline">
-          <label><input type="radio" name="energyMode" value="Ef fixed" checked /> Ef fixed</label>
-          <label><input type="radio" name="energyMode" value="Ei fixed" /> Ei fixed</label>
-        </div>
-        <div class="grid2">
-          <label id="energyLabel">Ef (meV)<input id="energyInput" type="number" step="0.1" value="4.8" /></label>
-          <label class="checkbox-label"><input id="lambdaHalf" type="checkbox" /> λ/2</label>
-        </div>
-        <div class="grid3">
-          <label id="s2Label">S2 min (deg)<input id="S2min" type="number" step="0.1" value="8" /></label>
-          <label id="s1minWrap">S1 min (deg)<input id="S1min" type="number" step="0.1" value="-180" /></label>
-          <label id="s1maxWrap">S1 max (deg)<input id="S1max" type="number" step="0.1" value="180" /></label>
         </div>
       </section>
 
