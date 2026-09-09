@@ -48,15 +48,23 @@ function isAllowedByCentering(hkl, centering){
   switch(centering){
     case "I":
       return even(h+k+l);
+
     case "F":
       return (even(h) && even(k) && even(l)) ||
              (!even(h) && !even(k) && !even(l));
+
     case "A":
       return even(k+l);
+
     case "B":
       return even(h+l);
+
     case "C":
       return even(h+k);
+
+    case "R":
+      return ((-h + k + l) % 3 + 3) % 3 === 0;
+
     case "P":
     default:
       return true;
