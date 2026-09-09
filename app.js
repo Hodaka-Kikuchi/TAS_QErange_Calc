@@ -34,6 +34,34 @@ function hklToQ(rl,hkl){
 function formatHKL(v){
   return v.map(x=>Math.abs(x-Math.round(x))<1e-10?String(Math.round(x)):x.toFixed(3)).join(",");
 }
+
+function isAllowedByCentering(hkl, centering){
+  const rounded=hkl.map(x=>Math.round(x));
+
+  // Centering extinction rules are defined for integer Miller indices.
+  // If a generated point is not integer-valued, leave it unchanged.
+  if(hkl.some((x,i)=>Math.abs(x-rounded[i])>1e-10)) return true;
+
+  const [h,k,l]=rounded;
+  const even = x => Math.abs(x)%2===0;
+
+  switch(centering){
+    case "I":
+      return even(h+k+l);
+    case "F":
+      return (even(h) && even(k) && even(l)) ||
+             (!even(h) && !even(k) && !even(l));
+    case "A":
+      return even(k+l);
+    case "B":
+      return even(h+l);
+    case "C":
+      return even(h+k);
+    case "P":
+    default:
+      return true;
+  }
+}
 function maxArray(a){ return Math.max(...a); }
 
 async function fetchJson(url){
@@ -328,6 +356,7 @@ function calcQDark(s1,s2,ki,kf,s1Offset,QrefXY,sense){
 function calculateSingleCrystal(){
   const inst=currentInstrument();
   const lc=latticeParams();
+  const latticeCentering=$("latticeCentering").value || "P";
   const U=[num("Uh"),num("Uk"),num("Ul")];
   const V=[num("Vh"),num("Vk"),num("Vl")];
   const rl=RL_calc({...lc,sv1:U,sv2:V});
@@ -440,21 +469,12 @@ function calculateSingleCrystal(){
       const G=hklToQ(rl,hkl);
 
       if(norm(G)>QplotLattice) continue;
-
-      const h = Math.round(hkl[0]);
-      const k = Math.round(hkl[1]);
-      const l = Math.round(hkl[2]);
-
-      const indexSum = h + k + l;
-
-      const showLabel =
-        !(h === 0 && k === 0 && l === 0) &&
-        Math.abs(indexSum) % 2 === 1;
+      if(!isAllowedByCentering(hkl,latticeCentering)) continue;
 
       Gpoints.push({
         x:dot(G,ex),
         y:dot(G,ey),
-        label:showLabel ? `(${formatHKL(hkl)})` : ""
+        label:`(${formatHKL(hkl)})`
       });
 
       if($("showK").checked){
@@ -495,7 +515,7 @@ function calculateSingleCrystal(){
   }
 
   return {
-    inst,lc,U,V,rl,ex,ey,ez,
+    inst,lc,latticeCentering,U,V,rl,ex,ey,ez,
     energyMode,Ei,Ef,lambdaHalf,hwList,
     regions,S2list,QmaxList,darkKF,darkKI,addDark,
     Gpoints,magPoints,ringData,darkRanges,darkRef
@@ -541,7 +561,7 @@ function renderSingle(cache,index=0){
         .map(p=>p.label),
 
       textposition:"middle center",
-      textfont:{color:"black",size:12},
+      textfont:{color:"black",size:8},
       showlegend:false,
       hoverinfo:"skip"
     },
@@ -574,7 +594,7 @@ function renderSingle(cache,index=0){
   const title=`${cache.inst.name||"Instrument"} | ${energyText}${lam}<br>`+
     `a=${cache.lc.a.toFixed(3)}, b=${cache.lc.b.toFixed(3)}, c=${cache.lc.c.toFixed(3)} Å<br>`+
     `α=${cache.lc.alpha.toFixed(1)}, β=${cache.lc.beta.toFixed(1)}, γ=${cache.lc.gamma.toFixed(1)}° | `+
-    `Plane: (${cache.U.join(",")})-(${cache.V.join(",")})`;
+    `Centering: ${cache.latticeCentering} | Plane: (${cache.U.join(",")})-(${cache.V.join(",")})`;
 
   Plotly.react("singlePlot",traces,{
     title:{text:title,x:0.5,xanchor:"center",font:{size:14}},
