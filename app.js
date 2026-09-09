@@ -776,7 +776,7 @@ async function initialize(){
   refreshSelect(
     sampleEnvironments,
     $("seSelect"),
-    "None"
+    "Standard"
   );
 
   if(instruments.size===0){
